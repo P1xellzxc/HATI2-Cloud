@@ -4,7 +4,10 @@
 HATI² Cloud is a personal finance tool designed for people who value privacy and aesthetics. It helps you organize expenses into isolated "collections" (Folders) rather than putting everything in one big bucket.
 
 ## What does "HATI-HATI" mean?
-"Hati-hati" means "Be Careful" or "Take Care" in Indonesian/Malay. It reflects our philosophy: **Take care of your wealth.**
+"Hati" means **"Split"** or **"Share"** in Filipino/Tagalog.
+"Hati-hati" roughly translates to **"Splitting Equally"** or **"Sharing Together"**.
+
+(It also means "Be Careful" in Indonesian/Malay, so: **Split carefully.**)
 
 ## Is this a PWA?
 Yes! You can install HATI² Cloud on your phone:
