@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { OfflineSyncProvider } from "@/components/providers/OfflineSyncProvider";
@@ -47,8 +48,10 @@ export default function RootLayout({
       >
         <OfflineSyncProvider>
           {children}
-          <BottomNav />
-          <FloatingAddButton />
+          <Suspense fallback={null}>
+            <BottomNav />
+            <FloatingAddButton />
+          </Suspense>
           <Toaster richColors position="top-center" />
         </OfflineSyncProvider>
       </body>
