@@ -3,7 +3,7 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* Manga x Notion Design System v3: NEO-MANGAKA */
+/* Manga x Notion Design System v4: MOBILE-FIRST NEO-MANGAKA */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -13,9 +13,10 @@
   /* Manga Halftone Colors */
   --color-manga-black: #000000;
   --color-manga-white: #ffffff;
-  --color-manga-red: #ff3333; /* Jump Red */
-  --color-manga-orange: #ff9900; /* Naruto Orange */
-  --color-manga-screentone: #e5e5e5;
+  --color-manga-red: #ff3333;
+  --color-manga-orange: #ff9900;
+  --color-manga-yellow: #ffd60a;
+  --color-manga-screentone: #f5f5f5;
 
   /* shadcn theme mappings */
   --color-border: #000000;
@@ -55,29 +56,211 @@
 }
 
 :root {
-  --radius: 0px; /* Manga panels have sharp corners */
+  --radius: 0px;
+  /* Safe area CSS variables */
+  --safe-area-top: env(safe-area-inset-top, 0px);
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-left: env(safe-area-inset-left, 0px);
+  --safe-area-right: env(safe-area-inset-right, 0px);
 }
+
+/* ==========================================
+   KEYFRAME ANIMATIONS
+   ========================================== */
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { 
+    opacity: 0; 
+    transform: translateY(20px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
+}
+
+@keyframes slideDown {
+  from { 
+    opacity: 0; 
+    transform: translateY(-20px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
+}
+
+@keyframes scaleIn {
+  from { 
+    opacity: 0; 
+    transform: scale(0.9); 
+  }
+  to { 
+    opacity: 1; 
+    transform: scale(1); 
+  }
+}
+
+@keyframes bounceIn {
+  0% { transform: scale(0.8); opacity: 0; }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+/* ==========================================
+   BASE STYLES
+   ========================================== */
 
 @layer base {
   * {
     @apply border-black outline-ring/50;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html {
+    /* Prevent iOS zoom on input focus */
+    touch-action: manipulation;
   }
 
   body {
     @apply bg-white text-black antialiased;
-    /* Optional: Add a subtle paper texture pattern later */
+    /* Prevent overscroll bounce on iOS */
+    overscroll-behavior: none;
   }
-  /* Safe Area Utilities for Mobile */
-  .pb-safe-area-bottom {
-    padding-bottom: env(safe-area-inset-bottom, 20px);
+
+  /* Smooth scrolling */
+  html, body {
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
   }
 }
 
 /* ==========================================
-   MANGA UTILITIES
+   SAFE AREA UTILITIES (Mobile)
    ========================================== */
 
-/* The Core Panel Style */
+/* Padding Safe Areas */
+.pt-safe { padding-top: env(safe-area-inset-top, 0px); }
+.pb-safe { padding-bottom: env(safe-area-inset-bottom, 0px); }
+.pl-safe { padding-left: env(safe-area-inset-left, 0px); }
+.pr-safe { padding-right: env(safe-area-inset-right, 0px); }
+.px-safe { 
+  padding-left: env(safe-area-inset-left, 0px); 
+  padding-right: env(safe-area-inset-right, 0px); 
+}
+.py-safe { 
+  padding-top: env(safe-area-inset-top, 0px); 
+  padding-bottom: env(safe-area-inset-bottom, 0px); 
+}
+.p-safe {
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+}
+
+/* Combined safe + regular padding */
+.pt-safe-4 { padding-top: calc(env(safe-area-inset-top, 0px) + 1rem); }
+.pt-safe-6 { padding-top: calc(env(safe-area-inset-top, 0px) + 1.5rem); }
+.pb-safe-4 { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 1rem); }
+.pb-safe-20 { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 5rem); }
+.pb-safe-24 { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 6rem); }
+
+/* Legacy support */
+.pb-safe-area-bottom {
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
+}
+
+/* ==========================================
+   ANIMATION UTILITIES
+   ========================================== */
+
+.animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+.animate-slide-up { animation: slideUp 0.4s ease-out forwards; }
+.animate-slide-down { animation: slideDown 0.4s ease-out forwards; }
+.animate-scale-in { animation: scaleIn 0.3s ease-out forwards; }
+.animate-bounce-in { animation: bounceIn 0.5s ease-out forwards; }
+.animate-pulse-slow { animation: pulse 2s ease-in-out infinite; }
+.animate-float { animation: float 3s ease-in-out infinite; }
+.animate-shake { animation: shake 0.5s ease-in-out; }
+
+/* Staggered animations for lists */
+.stagger-1 { animation-delay: 0.05s; }
+.stagger-2 { animation-delay: 0.1s; }
+.stagger-3 { animation-delay: 0.15s; }
+.stagger-4 { animation-delay: 0.2s; }
+.stagger-5 { animation-delay: 0.25s; }
+
+/* Animation utilities */
+.animate-once { animation-fill-mode: forwards; animation-iteration-count: 1; }
+.animate-delay-100 { animation-delay: 100ms; }
+.animate-delay-200 { animation-delay: 200ms; }
+.animate-delay-300 { animation-delay: 300ms; }
+
+/* ==========================================
+   TOUCH FEEDBACK UTILITIES
+   ========================================== */
+
+/* Press effect for buttons/cards */
+.touch-feedback {
+  @apply transition-transform duration-100 active:scale-95;
+}
+
+.touch-feedback-subtle {
+  @apply transition-transform duration-100 active:scale-[0.98];
+}
+
+/* Haptic-like press down effect */
+.press-effect {
+  @apply transition-all duration-100;
+}
+.press-effect:active {
+  transform: scale(0.95) translateY(2px);
+  filter: brightness(0.95);
+}
+
+/* Ripple-like feedback (pure CSS) */
+.tap-highlight {
+  position: relative;
+  overflow: hidden;
+}
+.tap-highlight::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle, rgba(0,0,0,0.1) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.tap-highlight:active::after {
+  opacity: 1;
+}
+
+/* ==========================================
+   MANGA PANEL STYLES
+   ========================================== */
+
 .manga-panel {
   @apply border-2 border-black bg-white transition-all duration-200;
   box-shadow: 4px 4px 0px 0px #000;
@@ -88,67 +271,207 @@
   box-shadow: 6px 6px 0px 0px #000;
 }
 
-/* For heavy headers or emphasis */
+/* Mobile-optimized panel (no hover effects) */
+@media (max-width: 768px) {
+  .manga-panel:hover {
+    transform: none;
+    box-shadow: 4px 4px 0px 0px #000;
+  }
+  .manga-panel:active {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0px 0px #000;
+  }
+}
+
+.manga-panel-flat {
+  @apply border-2 border-black bg-white;
+}
+
 .manga-title {
-  font-family: 'Courier New', Courier, monospace; /* Typewriter style */
+  font-family: 'Courier New', Courier, monospace;
   @apply font-black uppercase tracking-tighter;
 }
 
-/* Buttons */
+/* ==========================================
+   BUTTON STYLES
+   ========================================== */
+
 .manga-button {
-  @apply border-2 border-black bg-white text-black px-6 py-2 font-bold uppercase tracking-widest transition-all active:translate-y-1 active:translate-x-1 active:shadow-none;
+  @apply border-2 border-black bg-white text-black px-6 py-3 font-bold uppercase tracking-wider transition-all min-h-[48px];
   box-shadow: 4px 4px 0px 0px #000;
 }
 
-.manga-button:hover {
-  background: #000;
-  color: #fff;
+.manga-button:active {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0px 0px #000;
+}
+
+@media (hover: hover) {
+  .manga-button:hover {
+    background: #000;
+    color: #fff;
+  }
 }
 
 .manga-button-primary {
-  @apply border-2 border-black bg-black text-white px-6 py-2 font-bold uppercase tracking-widest transition-all;
-  box-shadow: 4px 4px 0px 0px #888;
+  @apply border-2 border-black bg-black text-white px-6 py-3 font-bold uppercase tracking-wider transition-all min-h-[48px];
+  box-shadow: 4px 4px 0px 0px #666;
 }
 
-.manga-button-primary:hover {
-  @apply bg-white text-black;
-  box-shadow: 4px 4px 0px 0px #000;
+.manga-button-primary:active {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0px 0px #666;
 }
 
-/* Inputs */
+@media (hover: hover) {
+  .manga-button-primary:hover {
+    @apply bg-gray-800;
+  }
+}
+
+.manga-button-danger {
+  @apply border-2 border-red-600 bg-red-600 text-white px-6 py-3 font-bold uppercase tracking-wider transition-all min-h-[48px];
+  box-shadow: 4px 4px 0px 0px #991b1b;
+}
+
+.manga-button-danger:active {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0px 0px #991b1b;
+}
+
+/* ==========================================
+   INPUT STYLES
+   ========================================== */
+
 .manga-input {
-  @apply border-2 border-black bg-white px-4 py-2 font-mono text-sm focus:ring-0 focus:outline-none focus:bg-yellow-50;
+  @apply border-2 border-black bg-white px-4 py-3 font-mono text-base min-h-[48px] focus:ring-0 focus:outline-none;
   box-shadow: 2px 2px 0px 0px #ccc;
+  /* Prevent iOS zoom */
+  font-size: 16px;
 }
+
 .manga-input:focus {
   box-shadow: 4px 4px 0px 0px #000;
+  @apply bg-yellow-50;
 }
 
-/* Layout Helpers */
+.manga-input::placeholder {
+  @apply text-gray-400;
+}
+
+/* ==========================================
+   CARD STYLES
+   ========================================== */
+
+.manga-card {
+  @apply border-2 border-black bg-white p-4 transition-all duration-200;
+  box-shadow: 4px 4px 0px 0px #000;
+}
+
+.manga-card-interactive {
+  @apply manga-card cursor-pointer;
+}
+
+.manga-card-interactive:active {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0px 0px #000;
+}
+
+/* ==========================================
+   MOBILE NAVIGATION STYLES
+   ========================================== */
+
+.mobile-nav {
+  @apply fixed bottom-0 left-0 right-0 z-50 bg-black;
+  padding-bottom: env(safe-area-inset-bottom, 8px);
+}
+
+.mobile-nav-item {
+  @apply flex flex-col items-center justify-center gap-1 py-2 px-4 min-h-[56px] min-w-[56px] transition-all duration-150;
+}
+
+.mobile-nav-item:active {
+  transform: scale(0.9);
+}
+
+.mobile-nav-item-active {
+  @apply text-yellow-400;
+}
+
+.mobile-nav-item-inactive {
+  @apply text-gray-500;
+}
+
+/* Floating Action Button */
+.mobile-fab {
+  @apply flex items-center justify-center w-14 h-14 bg-yellow-400 rounded-full border-4 border-black transition-all duration-200;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.mobile-fab:active {
+  transform: scale(0.9);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+
+/* ==========================================
+   LAYOUT HELPERS
+   ========================================== */
+
 .comic-grid {
   display: grid;
   grid-template-columns: repeat(12, 1fr);
-  gap: 1.5rem;
+  gap: 1rem;
 }
 
-/* Speech Bubble (for empty states) */
-.speech-bubble {
-  @apply relative border-2 border-black bg-white p-6;
-  border-radius: 50% / 10%; /* Comic ellipse style, actually maybe keep square for manga */
-  border-radius: 4px;
+/* Mobile screen container */
+.mobile-screen {
+  @apply min-h-screen flex flex-col;
+  padding-top: env(safe-area-inset-top, 0px);
 }
 
-/* Volume Cover Style (for Folders) */
-.volume-cover {
-  @apply border-2 border-black relative overflow-hidden h-48 flex items-end p-4;
-  box-shadow: 6px 6px 0px 0px #000;
+.mobile-content {
+  @apply flex-1 overflow-y-auto;
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 80px);
 }
 
-/* Utilities for text */
-.text-outline {
-  text-shadow: 
-    -1px -1px 0 #000,  
-     1px -1px 0 #000,
-    -1px  1px 0 #000,
-     1px  1px 0 #000;
+/* ==========================================
+   EMPTY STATE STYLES
+   ========================================== */
+
+.empty-state {
+  @apply flex flex-col items-center justify-center p-8 text-center;
+}
+
+.empty-state-icon {
+  @apply w-20 h-20 mb-4 flex items-center justify-center text-4xl bg-gray-100 border-2 border-black;
+  box-shadow: 4px 4px 0px 0px #000;
+}
+
+/* ==========================================
+   SCROLL UTILITIES
+   ========================================== */
+
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* ==========================================
+   LOADING STATES
+   ========================================== */
+
+.skeleton {
+  @apply bg-gray-200 animate-pulse;
+}
+
+.skeleton-text {
+  @apply skeleton h-4 rounded;
+}
+
+.skeleton-card {
+  @apply skeleton h-32 border-2 border-gray-300;
 }

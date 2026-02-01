@@ -106,7 +106,7 @@ export default async function DashboardLayout({
             </aside >
 
             {/* Main Content */}
-            <main className="flex-1 overflow-y-auto bg-background p-6 pb-24 md:pb-6">
+            <main className="flex-1 overflow-y-auto bg-background md:p-6">
                 {children}
             </main>
 
