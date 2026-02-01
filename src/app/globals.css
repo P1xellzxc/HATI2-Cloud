@@ -10,6 +10,16 @@
   --font-sans: var(--font-inter);
   --font-mono: var(--font-jetbrains-mono);
 
+  /* Notion Pastel Colors */
+  --color-notion-red: #fecaca;
+  --color-notion-blue: #bfdbfe;
+  --color-notion-yellow: #fef08a;
+  --color-notion-green: #bbf7d0;
+  --color-notion-purple: #e9d5ff;
+  --color-notion-pink: #fbcfe8;
+  --color-notion-orange: #fed7aa;
+  --color-notion-gray: #e5e7eb;
+
   /* Manga Halftone Colors */
   --color-manga-black: #000000;
   --color-manga-white: #ffffff;
@@ -599,4 +609,22 @@
 
 .skeleton-card {
   @apply bg-gray-200 animate-pulse h-32 border-2 border-gray-300;
+}
+
+/* Volume/Chapter Shelf Styling (From FinSplit) */
+.volume-card {
+  @apply border-2 border-black rounded-sm bg-white relative overflow-hidden;
+  box-shadow: 6px 6px 0px 0px #000;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.volume-card:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 8px 8px 0px 0px #000;
+}
+
+/* Notion-style Typography Helpers */
+.font-mono-numbers {
+  font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
 }

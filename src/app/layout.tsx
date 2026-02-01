@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { OfflineSyncProvider } from "@/components/providers/OfflineSyncProvider";
+import { BottomNav } from "@/components/layout/BottomNav";
+import { FloatingAddButton } from "@/components/layout/FloatingAddButton";
 import { Toaster } from "sonner";
 
 const geistSans = Geist({
@@ -45,6 +47,8 @@ export default function RootLayout({
       >
         <OfflineSyncProvider>
           {children}
+          <BottomNav />
+          <FloatingAddButton />
           <Toaster richColors position="top-center" />
         </OfflineSyncProvider>
       </body>
