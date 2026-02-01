@@ -76,7 +76,19 @@ Add these environment variables in Vercel Dashboard → Settings → Environment
 |----------|-------|
 | `NEXT_PUBLIC_SUPABASE_URL` | Your Supabase URL |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Your Supabase Anon Key |
-| `NEXT_PUBLIC_BASE_URL` | Your Vercel URL (e.g., `https://your-app.vercel.app`) |
+| `NEXT_PUBLIC_BASE_URL` | Your Vercel URL (e.g., `https://hati-2-cloud.vercel.app`) |
+
+## 🐛 Troubleshooting
+
+### "Vercel showing old version?"
+- Go to Vercel Dashboard -> Deployments
+- Check if the latest commit failed to build.
+- If it failed, click "Redeploy" on the latest commit.
+
+### "Magic Link goes to localhost?"
+- You must add `NEXT_PUBLIC_BASE_URL` to Vercel Environment Variables.
+- Set it to `https://hati-2-cloud.vercel.app`.
+- **After adding variables, you MUST redeploy** for changes to take effect.
 
 ## 📄 Documentation
 - [**FAQ**](./FAQ.md) - Common questions about HATI² Cloud
