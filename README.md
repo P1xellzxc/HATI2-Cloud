@@ -1,47 +1,87 @@
-# HATI² Cloud 👺
+# HATI² Cloud 💰
 **Your Private "Manga-Style" Financial Sanctuary**
 
-A privacy-focused, Notion-style, Manga-aesthetic Personal Finance PWA (Progressive Web App). Built with Next.js 16 (App Router), Supabase (Auth & DB), and Tailwind CSS v4.
+A privacy-focused, Notion-style, Manga-aesthetic Personal Finance PWA. Built with Next.js 16, Supabase, and Tailwind CSS v4.
+
+![HATI² Cloud](public/icons/icon-512.png)
 
 ## 🌟 Key Features
-*   **Hub & Spoke Model**: Create isolated "Folders" (e.g., "Personal", "Japan Trip", "Office Expense") with distinct members.
-*   **Manga x Notion Aesthetic**: High-contrast "Manga Panel" UI with pastel/paper backgrounds (`index.css` / `globals.css`).
-*   **Privacy First**: No "Global Social Network". You track *only* what you want, where you want.
-*   **Expense Splitting**: Split expenses equally or by percentage (coming soon) within folders.
-*   **PWA Ready**: Installable on mobile home screens.
+- **Hub & Spoke Model**: Create isolated "Folders" (e.g., "Personal", "Japan Trip", "Office Expense") with distinct members
+- **Manga x Notion Aesthetic**: High-contrast "Manga Panel" UI with neo-brutalist design
+- **Privacy First**: No global social network - you track only what you want
+- **Expense Splitting**: Split expenses equally or by custom amounts within folders
+- **Folder-Specific Invites**: Invite members to specific folders only
+- **PWA Ready**: Installable on mobile home screens
+- **Android APK**: Native Android app via Capacitor
+
+## 🔐 Authentication
+Three login options available:
+- **Email + Password** (Recommended) - No rate limits
+- **Sign Up** - Create new account with password
+- **Magic Link** - Passwordless email login (limited to 4/hour)
 
 ## 🛠️ Tech Stack
-*   **Frontend**: Next.js 16, React 19, TypeScript
-*   **Styling**: Tailwind CSS v4 (with custom "Manga" utilities)
-*   **Database**: Supabase (PostgreSQL)
-*   **Auth**: Supabase Auth (Magic Link / Passwordless)
-*   **State**: Server Actions & URL State
+- **Frontend**: Next.js 16, React 19, TypeScript
+- **Styling**: Tailwind CSS v4 (custom "Manga" utilities)
+- **Database**: Supabase (PostgreSQL)
+- **Auth**: Supabase Auth (Password + Magic Link)
+- **Mobile**: Capacitor (Android/iOS)
 
 ## 🚀 Getting Started
 
-1.  **Clone & Install**:
-    ```bash
-    git clone https://github.com/YOUR_USERNAME/hati2-cloud.git
-    cd hati2-cloud
-    npm install
-    ```
+### 1. Clone & Install
+```bash
+git clone https://github.com/memefernando04-wq/HATI2-Cloud.git
+cd hati2-cloud
+npm install
+```
 
-2.  **Environment Variables**:
-    Create a `.env.local` file:
-    ```env
-    NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-    NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-    ```
+### 2. Environment Variables
+Create a `.env.local` file:
+```env
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+NEXT_PUBLIC_BASE_URL=http://localhost:3000
+```
 
-3.  **Run Development Server**:
-    ```bash
-    npm run dev
-    ```
-    Open [http://localhost:3000](http://localhost:3000).
+### 3. Run Development Server
+```bash
+npm run dev
+```
+Open [http://localhost:3000](http://localhost:3000)
+
+## 📱 Android Build
+
+### Prerequisites
+- Android Studio with SDK installed
+- Java JDK (included with Android Studio)
+
+### Build APK
+```bash
+# Set JAVA_HOME (Windows PowerShell)
+$env:JAVA_HOME = "C:\Program Files\Android\Android Studio\jbr"
+
+# Build debug APK
+cd android
+./gradlew assembleDebug
+```
+
+APK location: `android/app/build/outputs/apk/debug/app-debug.apk`
+
+## 🌐 Vercel Deployment
+
+Add these environment variables in Vercel Dashboard → Settings → Environment Variables:
+
+| Variable | Value |
+|----------|-------|
+| `NEXT_PUBLIC_SUPABASE_URL` | Your Supabase URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Your Supabase Anon Key |
+| `NEXT_PUBLIC_BASE_URL` | Your Vercel URL (e.g., `https://your-app.vercel.app`) |
 
 ## 📄 Documentation
-*   [**FAQ**](./FAQ.md) - Common questions about HATI² Cloud.
-*   [**Privacy Policy**](./PRIVACY.md) - How we handle your data (or rather, how we *don't*).
+- [**FAQ**](./FAQ.md) - Common questions about HATI² Cloud
+- [**Privacy Policy**](./PRIVACY.md) - How we handle your data
+- [**Native Build Guide**](./NATIVE_BUILD.md) - Android/iOS build instructions
 
 ## 🤝 Contributing
 This is a private project, but suggestions are welcome!
