@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
-import { User, Save } from 'lucide-react'
+import { User, Save, LogOut } from 'lucide-react'
 
 export default async function ProfilePage() {
     const supabase = await createClient()
@@ -90,6 +90,16 @@ export default async function ProfilePage() {
                         UPDATE ID
                     </button>
                 </div>
+            </form>
+
+            <form action={async () => {
+                'use server'
+                await import('@/app/auth/actions').then(mod => mod.logout())
+            }}>
+                <button className="manga-button w-full flex items-center justify-center gap-2 bg-red-50 text-red-600 border-red-200 hover:bg-red-500 hover:text-white hover:border-black transition-all">
+                    <LogOut className="w-5 h-5" />
+                    LOGOUT
+                </button>
             </form>
         </div>
     )
