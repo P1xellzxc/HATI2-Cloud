@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 
+
 const nextConfig: NextConfig = {
   async headers() {
     return [
@@ -28,4 +29,16 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+const withPWA = require("@ducanh2912/next-pwa").default({
+  dest: "public",
+  cacheOnFrontEndNav: true,
+  aggressiveFrontEndNavCaching: true,
+  reloadOnOnline: true,
+  swcMinify: true,
+  disable: false, // Enable PWA in dev mode for testing offline
+  workboxOptions: {
+    disableDevLogs: true,
+  },
+});
+
+export default withPWA(nextConfig);

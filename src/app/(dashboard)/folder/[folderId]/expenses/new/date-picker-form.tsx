@@ -1,8 +1,9 @@
 'use client'
 
 import { useActionState, useState, useEffect } from 'react'
-import { createExpense, updateExpense } from '@/app/(dashboard)/actions' // Import updateExpense
-import { Loader2, Calculator, Percent, Users, AlertCircle, Trash2 } from 'lucide-react'
+import { createExpense, updateExpense } from '@/app/(dashboard)/actions'
+import { useOffline } from '@/components/providers/OfflineSyncProvider'
+import { Loader2, Calculator, Percent, Users, AlertCircle, Trash2, WifiOff } from 'lucide-react'
 
 interface Member {
     id: string
@@ -123,8 +124,41 @@ export default function ExpenseForm({ folderId, members, initialData }: ExpenseF
         return ''
     }
 
+    // Offline Hook
+    const { isOnline, addToQueue } = useOffline()
+
+    const handleSubmission = (formData: FormData) => {
+        if (isOnline) {
+            formAction(formData)
+        } else {
+            // 1. Construct Payload
+            const payload: Record<string, any> = {}
+            formData.forEach((value, key) => {
+                // Check if key already exists (array)
+                if (payload[key]) {
+                    if (!Array.isArray(payload[key])) {
+                        payload[key] = [payload[key]]
+                    }
+                    payload[key].push(value)
+                } else {
+                    payload[key] = value
+                }
+            })
+
+            // 2. Queue
+            addToQueue(isEditMode ? 'UPDATE_EXPENSE' : 'CREATE_EXPENSE', payload)
+
+            // 3. Fake Success State or Reset (Optional for UX)
+            // In a real app, we might redirect or clear form. 
+            // For now, let's toast is handled by addToQueue.
+            // We can maybe reset the form or redirect manually?
+            // Since we can't redirect easily without router, we might just let the user know.
+            // Ideally we redirect back to folder.
+        }
+    }
+
     return (
-        <form action={formAction} className="space-y-6 manga-panel p-8">
+        <form action={handleSubmission} className="space-y-6 manga-panel p-8">
             {/* ... Header ... */}
             <div className="border-b-2 border-black pb-4 mb-4 flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -135,6 +169,11 @@ export default function ExpenseForm({ folderId, members, initialData }: ExpenseF
                 </div>
                 {isEditMode && (
                     <span className="text-xs bg-yellow-300 text-black px-2 py-1 font-bold uppercase">Correction Mode</span>
+                )}
+                {!isOnline && (
+                    <span className="text-xs bg-red-500 text-white px-2 py-1 font-bold uppercase flex items-center gap-1">
+                        <WifiOff className="w-3 h-3" /> Offline
+                    </span>
                 )}
             </div>
 
