@@ -594,9 +594,9 @@
 }
 
 .skeleton-text {
-  @apply skeleton h-4 rounded;
+  @apply bg-gray-200 animate-pulse h-4 rounded;
 }
 
 .skeleton-card {
-  @apply skeleton h-32 border-2 border-gray-300;
+  @apply bg-gray-200 animate-pulse h-32 border-2 border-gray-300;
 }
