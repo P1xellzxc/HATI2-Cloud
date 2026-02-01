@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Hati2 Cloud</string>
+    <string name="title_activity_main">Hati2 Cloud</string>
+    <string name="package_name">com.hati2.cloud</string>
+    <string name="custom_url_scheme">com.hati2.cloud</string>
+</resources>

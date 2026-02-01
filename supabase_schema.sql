@@ -108,3 +108,36 @@ create policy "Editors can insert expenses"
       and folder_members.role in ('owner', 'editor')
     )
   );
+
+-- PHASE 2: Collaboration & Experience --
+
+-- Update folder_members for Invites
+-- (Note: These columns might be added via migration on existing DBs)
+-- alter table public.folder_members add column invite_token uuid default gen_random_uuid() unique;
+-- alter table public.folder_members add column invite_email text;
+
+-- Activity Logs
+create table public.activity_logs (
+  id uuid default gen_random_uuid() primary key,
+  folder_id uuid references public.folders(id) on delete cascade not null,
+  user_id uuid references public.users(id) on delete set null,
+  action_type text not null,
+  details jsonb default '{}'::jsonb,
+  created_at timestamptz default now()
+);
+
+alter table public.activity_logs enable row level security;
+
+create policy "Members can view activity logs"
+  on public.activity_logs for select
+  using (
+    exists (
+      select 1 from public.folder_members
+      where folder_members.folder_id = activity_logs.folder_id
+      and folder_members.user_id = auth.uid()
+    )
+  );
+
+-- User Preferences
+-- alter table public.users add column default_currency text default 'PHP';
+

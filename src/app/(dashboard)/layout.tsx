@@ -4,6 +4,8 @@ import Link from 'next/link'
 import { logout } from '@/app/auth/actions'
 import { Folder, LogOut, Plus, Settings } from 'lucide-react'
 
+import { MobileNav } from '@/components/layout/MobileNav'
+
 export default async function DashboardLayout({
     children,
 }: {
@@ -60,6 +62,28 @@ export default async function DashboardLayout({
                             </Link>
                         </nav>
                     </div>
+
+
+                    {/* New Section: Social */}
+                    <div className="manga-panel p-4 bg-white shadow-[4px_4px_0px_0px_#000]">
+                        <h3 className="manga-header text-xs text-slate-500 mb-4 px-2">Social</h3>
+                        <nav className="space-y-2">
+                            <Link
+                                href="/invitations"
+                                className="flex items-center gap-3 rounded-sm border-2 border-transparent px-3 py-3 text-sm font-bold text-slate-700 hover:border-black hover:bg-red-50 hover:shadow-[2px_2px_0px_0px_#000] transition-all"
+                            >
+                                <span className="text-xl">💌</span>
+                                Invitations
+                            </Link>
+                            <Link
+                                href="/settings/profile"
+                                className="flex items-center gap-3 rounded-sm border-2 border-transparent px-3 py-3 text-sm font-bold text-slate-700 hover:border-black hover:bg-red-50 hover:shadow-[2px_2px_0px_0px_#000] transition-all"
+                            >
+                                <span className="text-xl">👤</span>
+                                My Profile
+                            </Link>
+                        </nav>
+                    </div>
                 </div>
 
                 <div className="border-t-2 border-black p-4 bg-white">
@@ -79,12 +103,15 @@ export default async function DashboardLayout({
                         </form>
                     </div>
                 </div>
-            </aside>
+            </aside >
 
             {/* Main Content */}
-            <main className="flex-1 overflow-y-auto bg-background p-6">
+            <main className="flex-1 overflow-y-auto bg-background p-6 pb-24 md:pb-6">
                 {children}
             </main>
-        </div>
+
+            {/* Mobile Navigation (Visible on Mobile) */}
+            <MobileNav />
+        </div >
     )
 }

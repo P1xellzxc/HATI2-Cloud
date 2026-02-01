@@ -102,6 +102,24 @@ export function FolderSettingsClient({ folder, members }: { folder: any, members
                             </div>
                         </form>
                     </section>
+
+                    {/* EXPORT SECTION */}
+                    <section className="manga-panel p-8 bg-blue-50">
+                        <h2 className="manga-title text-2xl mb-4 flex items-center gap-2 border-b-2 border-black pb-2">
+                            <Save className="w-6 h-6" />
+                            Data Portability
+                        </h2>
+                        <p className="text-sm font-mono mb-4 text-slate-600">
+                            Download a copy of your expenses in CSV format.
+                        </p>
+                        <a
+                            href={`/api/export-csv?folderId=${folder.id}`}
+                            target="_blank"
+                            className="manga-button bg-white w-full flex items-center justify-center gap-2 hover:bg-blue-200"
+                        >
+                            Export to CSV
+                        </a>
+                    </section>
                 </div>
 
                 {/* RIGHT COLUMN: MEMBERS & DANGER */}
@@ -181,6 +199,6 @@ export function FolderSettingsClient({ folder, members }: { folder: any, members
 
                 </div>
             </div>
-        </div>
+        </div >
     )
 }

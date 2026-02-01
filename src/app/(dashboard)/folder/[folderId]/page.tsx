@@ -5,6 +5,7 @@ import { formatCurrency, formatDate } from '@/lib/utils'
 import { AddMemberModal } from '@/components/features/folders/AddMemberModal'
 import { calculateSettlements } from '@/lib/logic/settlements'
 import { SettlementPanel } from '@/components/features/folders/SettlementPanel'
+import { ActivityFeed } from '@/components/features/folders/ActivityFeed'
 
 export default async function FolderPage({ params }: { params: Promise<{ folderId: string }> }) {
     const { folderId } = await params
@@ -104,6 +105,12 @@ export default async function FolderPage({ params }: { params: Promise<{ folderI
                         >
                             Config
                         </Link>
+                        <Link
+                            href={`/folder/${folderId}/share`}
+                            className="manga-button text-sm flex items-center bg-yellow-300 hover:bg-yellow-400"
+                        >
+                            Waitlist / Share
+                        </Link>
                     </div>
                     <div className="md:hidden">
                         <AddMemberModal folderId={folderId} />
@@ -149,68 +156,76 @@ export default async function FolderPage({ params }: { params: Promise<{ folderI
                     </div>
                 </div>
 
-                {/* Expenses Feed */}
-                <div className="space-y-8">
-                    <h3 className="text-3xl font-black uppercase italic border-l-8 border-black pl-4">
-                        Recent Arcs
-                    </h3>
+                {/* Content Grid: Feed & Activity */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    {/* Main: Expenses Feed (Span 2) */}
+                    <div className="lg:col-span-2 space-y-8">
+                        <h3 className="text-3xl font-black uppercase italic border-l-8 border-black pl-4">
+                            Recent Arcs
+                        </h3>
 
-                    <div className="space-y-4">
-                        {expenses?.map((expense) => (
-                            <Link
-                                href={`/folder/${folderId}/expenses/${expense.id}/edit`}
-                                key={expense.id}
-                                className="manga-panel p-0 flex items-stretch hover:translate-x-1 transition-transform group cursor-pointer"
-                            >
-                                {/* Date Box */}
-                                <div className="bg-black text-white w-20 md:w-24 flex flex-col items-center justify-center p-2 text-center border-r-2 border-black flex-shrink-0 group-hover:bg-yellow-400 group-hover:text-black transition-colors">
-                                    <span className="text-[10px] uppercase font-bold tracking-widest leading-none mb-1">
-                                        {new Date(expense.date).toLocaleString('en-US', { month: 'short' })}
-                                    </span>
-                                    <span className="text-2xl font-black leading-none">
-                                        {new Date(expense.date).getDate()}
-                                    </span>
-                                    <span className="text-[10px] font-bold font-mono mt-1 text-slate-400 group-hover:text-black">
-                                        {new Date(expense.date).getFullYear()}
-                                    </span>
-                                </div>
+                        <div className="space-y-4">
+                            {expenses?.map((expense) => (
+                                <Link
+                                    href={`/folder/${folderId}/expenses/${expense.id}/edit`}
+                                    key={expense.id}
+                                    className="manga-panel p-0 flex items-stretch hover:translate-x-1 transition-transform group cursor-pointer"
+                                >
+                                    {/* Date Box */}
+                                    <div className="bg-black text-white w-20 md:w-24 flex flex-col items-center justify-center p-2 text-center border-r-2 border-black flex-shrink-0 group-hover:bg-yellow-400 group-hover:text-black transition-colors">
+                                        <span className="text-[10px] uppercase font-bold tracking-widest leading-none mb-1">
+                                            {new Date(expense.date).toLocaleString('en-US', { month: 'short' })}
+                                        </span>
+                                        <span className="text-2xl font-black leading-none">
+                                            {new Date(expense.date).getDate()}
+                                        </span>
+                                        <span className="text-[10px] font-bold font-mono mt-1 text-slate-400 group-hover:text-black">
+                                            {new Date(expense.date).getFullYear()}
+                                        </span>
+                                    </div>
 
-                                {/* Content */}
-                                <div className="flex-1 p-4 flex items-center justify-between gap-4 overflow-hidden">
-                                    <div className="flex items-center gap-4 min-w-0">
-                                        <div className="h-10 w-10 border-2 border-black flex items-center justify-center text-lg bg-white flex-shrink-0">
-                                            {categories[expense.category] || '📦'}
-                                        </div>
-                                        <div className="min-w-0">
-                                            <p className="font-bold text-base md:text-lg uppercase tracking-tight truncate group-hover:underline decoration-2 underline-offset-2">
-                                                {expense.description}
-                                            </p>
-                                            <div className="text-xs font-mono bg-gray-100 border border-black px-1 inline-block mt-1 truncate max-w-full">
-                                                Paid by: {getMemberName(expense.paid_by_member_id)}
+                                    {/* Content */}
+                                    <div className="flex-1 p-4 flex items-center justify-between gap-4 overflow-hidden">
+                                        <div className="flex items-center gap-4 min-w-0">
+                                            <div className="h-10 w-10 border-2 border-black flex items-center justify-center text-lg bg-white flex-shrink-0">
+                                                {categories[expense.category] || '📦'}
+                                            </div>
+                                            <div className="min-w-0">
+                                                <p className="font-bold text-base md:text-lg uppercase tracking-tight truncate group-hover:underline decoration-2 underline-offset-2">
+                                                    {expense.description}
+                                                </p>
+                                                <div className="text-xs font-mono bg-gray-100 border border-black px-1 inline-block mt-1 truncate max-w-full">
+                                                    Paid by: {getMemberName(expense.paid_by_member_id)}
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
 
-                                    {/* Amount */}
-                                    <div className="text-right flex-shrink-0">
-                                        <p className="font-black text-xl md:text-2xl">
-                                            {formatCurrency(expense.amount, folder.currency)}
-                                        </p>
-                                        <span className="text-[10px] font-bold bg-black text-white px-1 opacity-0 group-hover:opacity-100 transition-opacity uppercase">Edit</span>
+                                        {/* Amount */}
+                                        <div className="text-right flex-shrink-0">
+                                            <p className="font-black text-xl md:text-2xl">
+                                                {formatCurrency(expense.amount, folder.currency)}
+                                            </p>
+                                            <span className="text-[10px] font-bold bg-black text-white px-1 opacity-0 group-hover:opacity-100 transition-opacity uppercase">Edit</span>
+                                        </div>
                                     </div>
+                                </Link>
+                            ))}
+
+                            {(!expenses || expenses.length === 0) && (
+                                <div className="manga-panel p-12 text-center border-dashed">
+                                    <p className="font-mono text-lg uppercase">... Silence ...</p>
+                                    <p className="text-sm mt-2">No events recorded in this timeline.</p>
                                 </div>
-                            </Link>
-                        ))}
+                            )}
+                        </div>
+                    </div>
 
-                        {(!expenses || expenses.length === 0) && (
-                            <div className="manga-panel p-12 text-center border-dashed">
-                                <p className="font-mono text-lg uppercase">... Silence ...</p>
-                                <p className="text-sm mt-2">No events recorded in this timeline.</p>
-                            </div>
-                        )}
+                    {/* Sidebar: Activity Feed */}
+                    <div className="lg:col-span-1">
+                        <ActivityFeed folderId={folderId} />
                     </div>
                 </div>
             </div>
-        </div>
+        </div >
     )
 }

@@ -319,6 +319,7 @@ export async function deleteFolder(prevState: any, formData: FormData) {
 const AddMemberSchema = z.object({
     folderId: z.string().uuid(),
     name: z.string().min(1, 'Name is required'),
+    email: z.string().email().optional().or(z.literal('')),
 })
 
 export async function addMember(prevState: any, formData: FormData) {
@@ -327,6 +328,7 @@ export async function addMember(prevState: any, formData: FormData) {
     const parsed = AddMemberSchema.safeParse({
         folderId: formData.get('folderId'),
         name: formData.get('name'),
+        email: formData.get('email'),
     })
 
     if (!parsed.success) {
@@ -349,18 +351,121 @@ export async function addMember(prevState: any, formData: FormData) {
     }
 
     // Insert Placeholder Member
-    const { error } = await supabase
+    const { data: newMember, error } = await supabase
         .from('folder_members')
         .insert({
             folder_id: parsed.data.folderId,
             temp_name: parsed.data.name,
+            invite_email: parsed.data.email || null,
             role: 'viewer'
         })
+        .select('id, invite_token')
+        .single()
 
     if (error) {
         return { success: false, message: 'Failed to add member: ' + error.message }
     }
 
+    await logActivity(supabase, parsed.data.folderId, user.id, 'ADD_MEMBER', { member_name: parsed.data.name, email: parsed.data.email })
+
     revalidatePath(`/folder/${parsed.data.folderId}`)
-    return { success: true, message: 'Member added' }
+    return { success: true, message: 'Member added', memberId: newMember.id, inviteToken: newMember.invite_token }
 }
+
+// --- PHASE 2 ACTIONS ---
+
+// Helper for Activity Logging
+async function logActivity(supabase: any, folderId: string, userId: string, actionType: string, details: any = {}) {
+    try {
+        await supabase.from('activity_logs').insert({
+            folder_id: folderId,
+            user_id: userId,
+            action_type: actionType,
+            details: details
+        })
+    } catch (e) {
+        console.error('Failed to log activity:', e)
+    }
+}
+
+const ClaimMemberSchema = z.object({
+    token: z.string().uuid(),
+})
+
+export async function claimMember(prevState: any, formData: FormData) {
+    const supabase = await createClient()
+
+    const parsed = ClaimMemberSchema.safeParse({
+        token: formData.get('token'),
+    })
+
+    if (!parsed.success) {
+        return { success: false, message: 'Invalid invite token' }
+    }
+
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+        // Redirect to login with return URL if not logged in?
+        // For now, assuming middleware handles auth or we return specific error code
+        return { success: false, message: 'Please log in to accept the invite', requiresAuth: true }
+    }
+
+    // Call RPC to claim
+    const { data: success, error } = await supabase.rpc('claim_member_profile', {
+        p_invite_token: parsed.data.token,
+        p_user_id: user.id
+    })
+
+    if (error || !success) {
+        return { success: false, message: 'Failed to claim profile. Token might be invalid or already used.' }
+    }
+
+    // We need to find the folderId to redirect
+    // Provide a query for this or just redirect to root and let them find it
+    revalidatePath('/')
+    redirect('/')
+}
+
+const RegenerateTokenSchema = z.object({
+    memberId: z.string().uuid(),
+    folderId: z.string().uuid(),
+})
+
+export async function regenerateInviteToken(prevState: any, formData: FormData) {
+    const supabase = await createClient()
+
+    const parsed = RegenerateTokenSchema.safeParse({
+        memberId: formData.get('memberId'),
+        folderId: formData.get('folderId')
+    })
+
+    if (!parsed.success) return { success: false, message: 'Invalid Input' }
+
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { success: false, message: 'Unauthorized' }
+
+    // Check permissions (Owner only?)
+    const { data: currentUserMember } = await supabase
+        .from('folder_members')
+        .select('role')
+        .eq('folder_id', parsed.data.folderId)
+        .eq('user_id', user.id)
+        .single()
+
+    if (!currentUserMember || currentUserMember.role !== 'owner') {
+        return { success: false, message: 'Only owners can manage invite links' }
+    }
+
+    const { error } = await supabase
+        .from('folder_members')
+        .update({ invite_token: crypto.randomUUID() }) // Client-side UUID gen or let DB do it? 
+        // DB default is gen_random_uuid(), but for update we need to pass value or use DEFAULT keyword if supported via helper
+        // Let's just use SQL or a uuid lib. Since we are in Node/Next, crypto.randomUUID is available.
+        .eq('id', parsed.data.memberId)
+
+    if (error) return { success: false, message: 'Failed to regenerate token' }
+
+    revalidatePath(`/folder/${parsed.data.folderId}`)
+    return { success: true, message: 'Token regenerated' }
+}
+
