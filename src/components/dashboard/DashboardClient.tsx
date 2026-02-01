@@ -325,8 +325,8 @@ export default function DashboardClient({ initialFolders }: DashboardClientProps
                 ) : (
                     <motion.div variants={containerVariants} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                         {mergedDashboards.map((dashboard) => {
-                            const Icon = DASHBOARD_TYPE_ICONS[dashboard.dashboardType] || FolderOpen;
-                            const typeInfo = DASHBOARD_TYPE_LABELS[dashboard.dashboardType] || { label: 'Other', emoji: '📁' };
+                            const Icon = DASHBOARD_TYPE_ICONS[dashboard.dashboardType as DashboardType] || FolderOpen;
+                            const typeInfo = DASHBOARD_TYPE_LABELS[dashboard.dashboardType as DashboardType] || { label: 'Other', emoji: '📁' };
                             const { offsetY = 50, zoom = 1 } = dashboard.coverImageSettings || {};
 
                             return (
