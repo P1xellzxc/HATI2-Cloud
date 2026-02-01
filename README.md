@@ -1,5 +1,5 @@
 # HATI² Cloud 💰
-**Your Private "Manga-Style" Financial Sanctuary**
+**Your Private "Manga-Style" Financial Sanctuary** (Synced)
 
 A privacy-focused, Notion-style, Manga-aesthetic Personal Finance PWA. Built with Next.js 16, Supabase, and Tailwind CSS v4.
 
