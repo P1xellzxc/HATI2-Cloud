@@ -3,316 +3,148 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* Notion-style Design System */
+/* Manga x Notion Design System v3: NEO-MANGAKA */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-inter);
   --font-mono: var(--font-jetbrains-mono);
 
-  /* Notion Pastel Colors */
-  --color-notion-red: #fecaca;
-  --color-notion-blue: #bfdbfe;
-  --color-notion-yellow: #fef08a;
-  --color-notion-green: #bbf7d0;
-  --color-notion-purple: #e9d5ff;
-  --color-notion-pink: #fbcfe8;
-  --color-notion-orange: #fed7aa;
-  --color-notion-gray: #e5e7eb;
-
-  /* Semantic Colors */
-  --color-positive: #22c55e;
-  --color-negative: #ef4444;
+  /* Manga Halftone Colors */
+  --color-manga-black: #000000;
+  --color-manga-white: #ffffff;
+  --color-manga-red: #ff3333; /* Jump Red */
+  --color-manga-orange: #ff9900; /* Naruto Orange */
+  --color-manga-screentone: #e5e5e5;
 
   /* shadcn theme mappings */
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-border: var(--border);
-  --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
-  --color-card: var(--card);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-  --radius-2xl: calc(var(--radius) + 8px);
-  --radius-3xl: calc(var(--radius) + 12px);
-  --radius-4xl: calc(var(--radius) + 16px);
+  --color-border: #000000;
+  --color-input: #ffffff;
+  --color-ring: #000000;
+  --color-background: #ffffff;
+  --color-foreground: #000000;
+
+  --color-primary: #000000;
+  --color-primary-foreground: #ffffff;
+
+  --color-secondary: #ffffff;
+  --color-secondary-foreground: #000000;
+
+  --color-destructive: #ff0000;
+  --color-destructive-foreground: #ffffff;
+
+  --color-muted: #f4f4f5;
+  --color-muted-foreground: #71717a;
+
+  --color-accent: #f4f4f5;
+  --color-accent-foreground: #18181b;
+
+  --color-popover: #ffffff;
+  --color-popover-foreground: #000000;
+
+  --color-card: #ffffff;
+  --color-card-foreground: #000000;
+
+  /* SHARP EDGES ONLY */
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
+  --radius-2xl: 0px;
+  --radius-3xl: 0px;
 }
 
 :root {
-  /* Notion-style minimal radius */
-  --radius: 0.25rem;
-
-  /* Light theme - Notion inspired */
-  --background: #ffffff;
-  --foreground: #1f2937;
-  --card: #ffffff;
-  --card-foreground: #1f2937;
-  --popover: #ffffff;
-  --popover-foreground: #1f2937;
-  --primary: #1f2937;
-  --primary-foreground: #ffffff;
-  --secondary: #f9fafb;
-  --secondary-foreground: #1f2937;
-  --muted: #f3f4f6;
-  --muted-foreground: #6b7280;
-  --accent: #f3f4f6;
-  --accent-foreground: #1f2937;
-  --destructive: #ef4444;
-  --border: #e5e7eb;
-  --input: #e5e7eb;
-  --ring: #9ca3af;
-  --chart-1: #3b82f6;
-  --chart-2: #22c55e;
-  --chart-3: #f59e0b;
-  --chart-4: #ef4444;
-  --chart-5: #8b5cf6;
-  --sidebar: #f9fafb;
-  --sidebar-foreground: #1f2937;
-  --sidebar-primary: #1f2937;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #f3f4f6;
-  --sidebar-accent-foreground: #1f2937;
-  --sidebar-border: #e5e7eb;
-  --sidebar-ring: #9ca3af;
+  --radius: 0px; /* Manga panels have sharp corners */
 }
-
-/* Dark mode variables removed */
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-black outline-ring/50;
   }
 
   body {
-    @apply bg-background text-foreground antialiased;
-    font-feature-settings: "cv11", "ss01";
+    @apply bg-white text-black antialiased;
+    /* Optional: Add a subtle paper texture pattern later */
   }
-}
-
-/* Notion-style typography utilities */
-.font-mono-numbers {
-  font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
-  font-variant-numeric: tabular-nums;
-}
-
-/* Notion-style block hover effect */
-.notion-block {
-  @apply transition-colors hover:bg-muted/50;
-}
-
-/* Remove shadows, use borders (Notion style) */
-.notion-card {
-  @apply border border-border bg-card shadow-none;
 }
 
 /* ==========================================
-   MANGA x NOTION DESIGN SYSTEM v2
-   - Light: High Contrast Paper
-   - Dark: Inverted Manga (Negative Style)
+   MANGA UTILITIES
    ========================================== */
 
-/* ==========  LIGHT MODE: HIGH CONTRAST PAPER ========== */
-
-/* Manga Panel - Thick borders, hard shadows */
+/* The Core Panel Style */
 .manga-panel {
-  @apply border-2 border-black rounded-sm bg-white;
+  @apply border-2 border-black bg-white transition-all duration-200;
   box-shadow: 4px 4px 0px 0px #000;
 }
 
-.manga-panel-sm {
-  @apply border-2 border-black rounded-sm bg-white;
-  box-shadow: 2px 2px 0px 0px #000;
-}
-
-/* Webtoon Alignment - Based on debt direction */
-.panel-owe {
-  @apply ml-auto mr-0 max-w-[85%];
-}
-
-.panel-owed {
-  @apply mr-auto ml-0 max-w-[85%];
-}
-
-/* Manga Typography - HIGH READABILITY */
-.manga-header {
-  font-family: 'Impact', 'Arial Black', sans-serif;
-  @apply uppercase tracking-wide font-bold;
-}
-
-.manga-body {
-  font-family: var(--font-inter), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  @apply font-medium tracking-tight;
-}
-
-/* Light Mode Pastels - ONLY 50-scale for contrast safety */
-.manga-bg-red {
-  @apply bg-red-50;
-}
-
-.manga-bg-blue {
-  @apply bg-blue-50;
-}
-
-.manga-bg-yellow {
-  @apply bg-yellow-50;
-}
-
-.manga-bg-green {
-  @apply bg-green-50;
-}
-
-.manga-bg-purple {
-  @apply bg-purple-50;
-}
-
-.manga-bg-pink {
-  @apply bg-pink-50;
-}
-
-.manga-bg-orange {
-  @apply bg-orange-50;
-}
-
-/* Volume/Chapter Shelf Styling */
-.volume-card {
-  @apply border-2 border-black rounded-sm bg-white relative overflow-hidden;
-  box-shadow: 6px 6px 0px 0px #000;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-
-.volume-card:hover {
+.manga-panel:hover {
   transform: translate(-2px, -2px);
-  box-shadow: 8px 8px 0px 0px #000;
+  box-shadow: 6px 6px 0px 0px #000;
 }
 
-/* Dark mode styles removed */
-
-/* Subtle button styling */
-.notion-button {
-  @apply font-medium transition-colors hover:bg-muted;
+/* For heavy headers or emphasis */
+.manga-title {
+  font-family: 'Courier New', Courier, monospace; /* Typewriter style */
+  @apply font-black uppercase tracking-tighter;
 }
 
-/* Mobile-specific utilities */
-@supports (padding-bottom: env(safe-area-inset-bottom)) {
-  .safe-area-bottom {
-    padding-bottom: env(safe-area-inset-bottom);
-  }
-
-  .pb-safe-bottom {
-    padding-bottom: calc(4rem + env(safe-area-inset-bottom));
-  }
+/* Buttons */
+.manga-button {
+  @apply border-2 border-black bg-white text-black px-6 py-2 font-bold uppercase tracking-widest transition-all active:translate-y-1 active:translate-x-1 active:shadow-none;
+  box-shadow: 4px 4px 0px 0px #000;
 }
 
-/* Fallback for browsers without safe-area support */
-@supports not (padding-bottom: env(safe-area-inset-bottom)) {
-  .safe-area-bottom {
-    padding-bottom: 0;
-  }
-
-  .pb-safe-bottom {
-    padding-bottom: 4rem;
-  }
+.manga-button:hover {
+  background: #000;
+  color: #fff;
 }
 
-@supports (padding-top: env(safe-area-inset-top)) {
-  .pt-safe-top {
-    padding-top: env(safe-area-inset-top);
-  }
-
-  .h-safe-top {
-    height: env(safe-area-inset-top);
-  }
+.manga-button-primary {
+  @apply border-2 border-black bg-black text-white px-6 py-2 font-bold uppercase tracking-widest transition-all;
+  box-shadow: 4px 4px 0px 0px #888;
 }
 
-@supports not (padding-top: env(safe-area-inset-top)) {
-  .pt-safe-top {
-    padding-top: 0px;
-  }
+.manga-button-primary:hover {
+  @apply bg-white text-black;
+  box-shadow: 4px 4px 0px 0px #000;
 }
 
-/* Touch-friendly tap targets */
-@media (max-width: 768px) {
-
-  button,
-  a,
-  .touch-target {
-    min-height: 44px;
-  }
-
-  /* Larger input fields on mobile */
-  input,
-  select,
-  textarea {
-    font-size: 16px !important;
-    /* Prevents iOS zoom on focus */
-  }
-
-  /* Hide scrollbar on mobile for cleaner look */
-  .hide-scrollbar {
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-  }
-
-  .hide-scrollbar::-webkit-scrollbar {
-    display: none;
-  }
+/* Inputs */
+.manga-input {
+  @apply border-2 border-black bg-white px-4 py-2 font-mono text-sm focus:ring-0 focus:outline-none focus:bg-yellow-50;
+  box-shadow: 2px 2px 0px 0px #ccc;
+}
+.manga-input:focus {
+  box-shadow: 4px 4px 0px 0px #000;
 }
 
-/* Pull to refresh indicator */
-.pull-indicator {
-  position: fixed;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 100;
+/* Layout Helpers */
+.comic-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 1.5rem;
 }
 
-/* Card press effect for mobile */
-@media (hover: none) {
-  .press-effect:active {
-    transform: scale(0.98);
-    opacity: 0.9;
-  }
+/* Speech Bubble (for empty states) */
+.speech-bubble {
+  @apply relative border-2 border-black bg-white p-6;
+  border-radius: 50% / 10%; /* Comic ellipse style, actually maybe keep square for manga */
+  border-radius: 4px;
 }
 
-/* Smooth momentum scrolling */
-.scroll-smooth {
-  -webkit-overflow-scrolling: touch;
-  scroll-behavior: smooth;
+/* Volume Cover Style (for Folders) */
+.volume-cover {
+  @apply border-2 border-black relative overflow-hidden h-48 flex items-end p-4;
+  box-shadow: 6px 6px 0px 0px #000;
 }
 
-/* Reduced Motion Override */
-.reduce-motion *,
-.reduce-motion *::before,
-.reduce-motion *::after {
-  animation-duration: 0.01ms !important;
-  animation-iteration-count: 1 !important;
-  transition-duration: 0.01ms !important;
-  scroll-behavior: auto !important;
+/* Utilities for text */
+.text-outline {
+  text-shadow: 
+    -1px -1px 0 #000,  
+     1px -1px 0 #000,
+    -1px  1px 0 #000,
+     1px  1px 0 #000;
 }

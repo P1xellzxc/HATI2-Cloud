@@ -32,10 +32,13 @@ alter table public.folders enable row level security;
 
 -- Folder Members (Access Control)
 create table public.folder_members (
+  id uuid default gen_random_uuid() primary key,
   folder_id uuid references public.folders(id) on delete cascade not null,
-  user_id uuid references public.users(id) on delete cascade not null,
+  user_id uuid references public.users(id) on delete cascade, -- Nullable for placeholders
+  temp_name text, -- For placeholders
   role text default 'viewer' check (role in ('owner', 'editor', 'viewer')),
-  primary key (folder_id, user_id)
+  constraint check_member_identity check (user_id is not null or temp_name is not null),
+  unique (folder_id, user_id) -- Keep unique constraint for real users if desired, or handle logic app side
 );
 
 alter table public.folder_members enable row level security;
@@ -44,7 +47,8 @@ alter table public.folder_members enable row level security;
 create table public.expenses (
   id uuid default gen_random_uuid() primary key,
   folder_id uuid references public.folders(id) on delete cascade not null,
-  paid_by uuid references public.users(id) not null,
+  paid_by_member_id uuid references public.folder_members(id), -- New link
+  paid_by uuid references public.users(id), -- Deprecated, keeping for backup
   amount numeric(12, 2) not null,
   description text not null,
   category text,

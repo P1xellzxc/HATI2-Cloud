@@ -6,10 +6,21 @@ export default async function NewExpensePage({ params }: { params: Promise<{ fol
     const { folderId } = await params
     const supabase = await createClient()
 
-    // Fetch Members
+    // Fetch Members (including placeholders)
     const { data: members, error } = await supabase
         .from('folder_members')
-        .select('user_id, role, user:users(id, email, display_name, avatar_url)')
+        .select(`
+            id,
+            user_id,
+            temp_name,
+            role,
+            user:users (
+                id,
+                email,
+                display_name,
+                avatar_url
+            )
+        `)
         .eq('folder_id', folderId)
 
     if (error || !members) {
@@ -18,9 +29,10 @@ export default async function NewExpensePage({ params }: { params: Promise<{ fol
 
     // Transform for easier usage
     const formattedMembers = members.map((m: any) => ({
-        id: m.user.id,
-        email: m.user.email,
-        displayName: m.user.display_name || m.user.email.split('@')[0]
+        id: m.id, // Using MEMBER ID now, not User ID
+        userId: m.user_id,
+        email: m.user?.email,
+        displayName: m.temp_name || m.user?.display_name || m.user?.email?.split('@')[0] || 'Unknown Member'
     }))
 
     return (

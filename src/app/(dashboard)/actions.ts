@@ -52,10 +52,10 @@ const CreateExpenseSchema = z.object({
     amount: z.coerce.number().positive(),
     date: z.string(),
     category: z.string().optional(),
-    paidBy: z.string().uuid().optional(),
-    splitWith: z.union([z.string(), z.array(z.string())]).optional(), // Checkboxes submit as string or array
+    paidByMemberId: z.string().uuid().optional(), // New field: Member ID (link table)
+    splitWith: z.union([z.string(), z.array(z.string())]).optional(),
+    splitDetails: z.string().optional(), // New field: JSON string from advanced UI
 })
-
 
 export async function createExpense(prevState: any, formData: FormData) {
     const supabase = await createClient()
@@ -67,45 +67,174 @@ export async function createExpense(prevState: any, formData: FormData) {
         amount: formData.get('amount'),
         date: formData.get('date'),
         category: formData.get('category'),
+        paidByMemberId: formData.get('paidByMemberId'), // Get selected member ID
+        splitWith: formData.getAll('splitWith'), // Use getAll for checkboxes
+        splitDetails: formData.get('splitDetails'),
     })
 
     if (!parsed.success) {
         return { success: false, message: parsed.error.issues[0].message }
     }
 
+    const { folderId, description, amount, date, category, paidByMemberId, splitWith, splitDetails } = parsed.data
+
     // 2. Auth Check
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return { success: false, message: 'Unauthorized' }
 
-    // 3. Authorization Check (RLS handles it, but good to check membership specifically if we want custom error)
-    // We rely on RLS policy: "Editors can insert expenses"
+    // 3. Resolve "Paid By" User ID (if applicable)
+    // We have the Member ID. We need to store:
+    // - paid_by_member_id (The FK to folder_members)
+    // - paid_by (The FK to users, if the member is a real user)
 
-    const { folderId, description, amount, date, category, paidBy, splitWith } = parsed.data
+    let realUserId = null
 
-    // Normalize splitWith to array
-    const splitMembers = Array.isArray(splitWith) ? splitWith : (splitWith ? [splitWith] : [])
+    // Default to current user if no member selected (fallback)
+    // But ideally user MUST select a member now.
 
-    // Construct Split Details JSON
-    // { "type": "equal", "members": ["id1", "id2"] }
-    const splitDetails = {
-        type: 'equal',
-        members: splitMembers.length > 0 ? splitMembers : [user.id] // Default to purely personal if no split selected
+    if (paidByMemberId) {
+        const { data: member } = await supabase
+            .from('folder_members')
+            .select('user_id')
+            .eq('id', paidByMemberId)
+            .single()
+
+        if (member?.user_id) {
+            realUserId = member.user_id
+        }
+    } else {
+        // Fallback: If for some reason no member selected, try to find the current user's member ID?
+        // For now, let's just error or require it. The UI defaults to first member.
+        // Or we just default to current user id for legacy support?
+        realUserId = user.id
+    }
+
+    // Resolve Split Details Logic
+    let finalSplitDetails = {}
+
+    if (splitDetails) {
+        // Mode 1: Advanced Split (JSON provided by UI)
+        try {
+            finalSplitDetails = JSON.parse(splitDetails)
+        } catch (e) {
+            console.error('Failed to parse splitDetails:', e)
+            return { success: false, message: 'Invalid split data structure' }
+        }
+    } else {
+        // Mode 2: Legacy/Simple Split (Checkboxes only)
+        // Normalize splitWith to array
+        const splitMembers = Array.isArray(splitWith) ? splitWith : (splitWith ? [splitWith] : [])
+        // Construct Split Details JSON
+        // { "type": "equal", "members": ["member_id_1", "member_id_2"] } -> Now storing MEMBER IDs
+        finalSplitDetails = {
+            type: 'equal',
+            members: splitMembers.length > 0 ? splitMembers : []
+        }
     }
 
     const { error } = await supabase
         .from('expenses')
         .insert({
             folder_id: folderId,
-            paid_by: paidBy || user.id, // Use selected payer or current user
+            paid_by_member_id: paidByMemberId, // Store the Member ID link
+            paid_by: realUserId, // Store the User ID link (nullable now)
             description,
             amount,
             date,
             category,
-            split_details: splitDetails
+            split_details: finalSplitDetails
         })
 
     if (error) {
+        console.error('Create Expense Error:', error)
         return { success: false, message: 'Failed to save expense: ' + error.message }
+    }
+
+    revalidatePath(`/folder/${folderId}`)
+    redirect(`/folder/${folderId}`)
+}
+
+const UpdateExpenseSchema = CreateExpenseSchema.extend({
+    expenseId: z.string().uuid()
+})
+
+export async function updateExpense(prevState: any, formData: FormData) {
+    const supabase = await createClient()
+
+    const parsed = UpdateExpenseSchema.safeParse({
+        expenseId: formData.get('expenseId'),
+        folderId: formData.get('folderId'),
+        description: formData.get('description'),
+        amount: formData.get('amount'),
+        date: formData.get('date'),
+        category: formData.get('category'),
+        paidByMemberId: formData.get('paidByMemberId'),
+        splitWith: formData.getAll('splitWith'),
+        splitDetails: formData.get('splitDetails'),
+    })
+
+    if (!parsed.success) {
+        console.error('Validation Error for Update:', parsed.error)
+        return { success: false, message: parsed.error.issues[0].message }
+    }
+
+    console.log('UpdateExpense Payload:', parsed.data)
+
+    const { expenseId, folderId, description, amount, date, category, paidByMemberId, splitWith, splitDetails } = parsed.data
+
+    // Auth Check
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { success: false, message: 'Unauthorized' }
+
+    // Resolve Payer
+    let realUserId = null
+    if (paidByMemberId) {
+        const { data: member } = await supabase
+            .from('folder_members')
+            .select('user_id')
+            .eq('id', paidByMemberId)
+            .single()
+
+        if (member?.user_id) realUserId = member.user_id
+    } else {
+        realUserId = user.id
+    }
+
+    // Resolve Split Details Logic
+    let finalSplitDetails = {}
+
+    if (splitDetails) {
+        try {
+            finalSplitDetails = JSON.parse(splitDetails)
+        } catch (e) {
+            console.error('Failed to parse splitDetails:', e)
+            return { success: false, message: 'Invalid split data structure' }
+        }
+    } else {
+        const splitMembers = Array.isArray(splitWith) ? splitWith : (splitWith ? [splitWith] : [])
+        finalSplitDetails = {
+            type: 'equal',
+            members: splitMembers.length > 0 ? splitMembers : []
+        }
+    }
+
+    const { error } = await supabase
+        .from('expenses')
+        .update({
+            paid_by_member_id: paidByMemberId,
+            paid_by: realUserId,
+            description,
+            amount,
+            date,
+            category,
+            split_details: finalSplitDetails
+        })
+        .eq('id', expenseId)
+        .eq('folder_id', folderId) // Security check
+
+    if (error) {
+        console.error('Update Expense Error:', error)
+        return { success: false, message: 'Failed to update expense: ' + error.message }
     }
 
     revalidatePath(`/folder/${folderId}`)
@@ -171,16 +300,67 @@ export async function deleteFolder(prevState: any, formData: FormData) {
     if (!user) return { success: false, message: 'Unauthorized' }
 
     // RLS check implies Owner/Member, but strictly restricting delete to Owner is good practice
-    const { error } = await supabase
+    const { error, count } = await supabase
         .from('folders')
-        .delete()
+        .delete({ count: 'exact' })
         .eq('id', parsed.data.folderId)
         .eq('owner_id', user.id) // Only owner can delete
 
-    if (error) {
-        return { success: false, message: 'Failed to delete folder' }
+    if (error || count === 0) {
+        return { success: false, message: 'Failed to delete folder (Permission denied or not found)' }
     }
+
+
 
     revalidatePath('/')
     redirect('/')
+}
+
+const AddMemberSchema = z.object({
+    folderId: z.string().uuid(),
+    name: z.string().min(1, 'Name is required'),
+})
+
+export async function addMember(prevState: any, formData: FormData) {
+    const supabase = await createClient()
+
+    const parsed = AddMemberSchema.safeParse({
+        folderId: formData.get('folderId'),
+        name: formData.get('name'),
+    })
+
+    if (!parsed.success) {
+        return { success: false, message: parsed.error.issues[0].message }
+    }
+
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { success: false, message: 'Unauthorized' }
+
+    // Check permissions
+    const { data: membership } = await supabase
+        .from('folder_members')
+        .select('role')
+        .eq('folder_id', parsed.data.folderId)
+        .eq('user_id', user.id)
+        .single()
+
+    if (!membership || !['owner', 'editor'].includes(membership.role)) {
+        return { success: false, message: 'Permission denied: must be owner or editor' }
+    }
+
+    // Insert Placeholder Member
+    const { error } = await supabase
+        .from('folder_members')
+        .insert({
+            folder_id: parsed.data.folderId,
+            temp_name: parsed.data.name,
+            role: 'viewer'
+        })
+
+    if (error) {
+        return { success: false, message: 'Failed to add member: ' + error.message }
+    }
+
+    revalidatePath(`/folder/${parsed.data.folderId}`)
+    return { success: true, message: 'Member added' }
 }

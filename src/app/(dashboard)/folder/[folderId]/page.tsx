@@ -1,8 +1,10 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { Plus, Settings, TrendingUp } from 'lucide-react'
 import { formatCurrency, formatDate } from '@/lib/utils'
+import { AddMemberModal } from '@/components/features/folders/AddMemberModal'
+import { calculateSettlements } from '@/lib/logic/settlements'
+import { SettlementPanel } from '@/components/features/folders/SettlementPanel'
 
 export default async function FolderPage({ params }: { params: Promise<{ folderId: string }> }) {
     const { folderId } = await params
@@ -20,21 +22,38 @@ export default async function FolderPage({ params }: { params: Promise<{ folderI
         notFound()
     }
 
-    // 2. Fetch Expenses
+    // 2. Fetch Members (Needed for logic)
+    const { data: rawMembers } = await supabase
+        .from('folder_members')
+        .select(`
+            id, 
+            user_id, 
+            temp_name, 
+            user:users (
+                id, 
+                email, 
+                display_name
+            )
+        `)
+        .eq('folder_id', folderId)
+
+    const members = (rawMembers || []).map((m: any) => ({
+        id: m.id,
+        displayName: m.temp_name || m.user?.display_name || m.user?.email?.split('@')[0] || 'Unknown'
+    }))
+
+    // 3. Fetch Expenses (ALL needed for correct debt calc)
+    // Note: In a real large-scale app, we'd use a SQL View or materialized view for balances.
     const { data: expenses } = await supabase
         .from('expenses')
-        .select('id, description, amount, date, paid_by(email), category')
+        .select('id, description, amount, date, paid_by_member_id, category, split_details')
         .eq('folder_id', folderId)
         .order('date', { ascending: false })
-        .limit(20)
 
-    // 3. Fetch Members Count
-    const { data: members } = await supabase
-        .from('folder_members')
-        .select('id')
-        .eq('folder_id', folderId)
+    // 4. Calculate Settlements
+    const debts = calculateSettlements(expenses || [], members)
 
-    // 4. Calculate Total
+    // 5. Calculate Total
     const totalExpenses = expenses?.reduce((sum, exp) => sum + Number(exp.amount), 0) || 0
 
     const categories: Record<string, string> = {
@@ -45,106 +64,148 @@ export default async function FolderPage({ params }: { params: Promise<{ folderI
         'Entertainment': '🎮',
     }
 
+    // Helper to find member name for feed
+    const getMemberName = (id: string | null) => {
+        if (!id) return 'Unknown'
+        return members.find(m => m.id === id)?.displayName || 'Unknown'
+    }
+
     return (
-        <div className="flex h-full flex-col">
-            <div className="max-w-5xl mx-auto p-4 md:p-8 space-y-8">
+        <div className="flex h-full flex-col bg-white">
+            <div className="max-w-6xl mx-auto p-4 md:p-8 space-y-12 w-full">
                 {/* Header Panel */}
-                <div className="anime-card p-8 flex items-center justify-between bg-white dark:bg-slate-800 border-none">
+                <div className="flex items-center justify-between border-b-4 border-black pb-4">
                     <div>
-                        <h1 className="text-4xl font-extrabold text-slate-800 dark:text-white tracking-tight">
+                        <h1 className="text-4xl md:text-6xl font-black text-black tracking-tighter uppercase manga-title truncate">
                             {folder.name}
                         </h1>
                         <div className="flex items-center gap-3 mt-2">
-                            <span className="bg-red-100 text-red-600 px-3 py-1 rounded-full text-xs font-bold dark:bg-red-900/30 dark:text-red-400">
-                                ID: {folderId.split('-')[0]}
+                            <span className="bg-black text-white px-2 py-0.5 text-xs font-mono border border-black">
+                                VOL. {folderId.split('-')[0].substring(0, 3).toUpperCase()}
                             </span>
-                            <span className="text-sm font-medium text-slate-500 dark:text-slate-400">
-                                {members?.length || 1} Member(s)
+                            <span className="text-sm font-bold uppercase tracking-widest border-l-2 border-black pl-3">
+                                {members?.length || 1} Character(s)
                             </span>
                         </div>
                     </div>
-                    <Link
-                        href={`/folder/${folderId}/settings`}
-                        className="anime-button bg-slate-100 text-slate-600 px-6 py-2 text-sm hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600"
-                    >
-                        Settings
-                    </Link>
+                    <div className="flex gap-4">
+                        <div className="w-48 hidden md:block">
+                            <AddMemberModal folderId={folderId} />
+                        </div>
+                        <Link
+                            href={`/folder/${folderId}/analytics`}
+                            className="manga-button text-sm flex items-center"
+                        >
+                            Analytics
+                        </Link>
+                        <Link
+                            href={`/folder/${folderId}/settings`}
+                            className="manga-button text-sm flex items-center"
+                        >
+                            Config
+                        </Link>
+                    </div>
+                    <div className="md:hidden">
+                        <AddMemberModal folderId={folderId} />
+                    </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {/* Balance Card */}
-                    <div className="md:col-span-2 anime-card p-8 relative overflow-hidden bg-gradient-to-br from-red-500 to-orange-500 text-white border-none">
-                        <div className="absolute -right-4 -top-4 opacity-20 transform rotate-12">
-                            <span className="text-9xl font-black">¥</span>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+                    {/* Panel 1: The Big Number (Span 2) */}
+                    <div className="md:col-span-2 manga-panel p-8 relative flex flex-col justify-center min-h-[250px] pattern-dots">
+                        <div className="absolute top-0 right-0 bg-black text-white px-4 py-1 font-bold text-xs uppercase">
+                            Current Limit
                         </div>
-                        <h2 className="text-sm font-bold uppercase tracking-wider text-red-100 mb-1">
+                        <h2 className="text-xl font-bold uppercase tracking-widest mb-2 border-b-2 border-black w-max pb-1">
                             Total Expenses
                         </h2>
-                        <div className="text-6xl font-black mt-2">
+                        <div className="text-6xl md:text-8xl font-black tracking-tighter text-outline text-white drop-shadow-[4px_4px_0_#000]" style={{ WebkitTextStroke: '2px black' }}>
                             {formatCurrency(totalExpenses, folder.currency)}
                         </div>
-                        <div className="mt-4 flex items-center gap-2">
-                            <div className="h-2 w-2 rounded-full bg-green-400 animate-pulse"></div>
-                            <span className="text-xs font-medium text-red-100">Live Updates</span>
+                        <div className="mt-6 flex items-center gap-2">
+                            <span className="animate-pulse text-red-600 font-bold text-sm uppercase">● Live Action</span>
                         </div>
                     </div>
 
-                    {/* Actions Panel */}
-                    <div className="anime-card p-6 flex flex-col justify-center space-y-4 bg-white dark:bg-slate-800 border-none text-center">
-                        <div className="mx-auto h-16 w-16 bg-red-100 rounded-full flex items-center justify-center text-3xl mb-2 dark:bg-red-900/20">
-                            ✨
+                    {/* Panel 2: Settlement Status (Span 1) */}
+                    <div className="md:col-span-1 h-full min-h-[250px]">
+                        <SettlementPanel debts={debts} members={members} folderId={folderId} />
+                    </div>
+
+                    {/* Panel 3: Action Button (Span 1) */}
+                    <div className="md:col-span-1 manga-panel p-6 flex flex-col items-center justify-center space-y-6 text-center bg-yellow-50 min-h-[250px]">
+                        <div className="h-16 w-16 border-2 border-black bg-white flex items-center justify-center text-3xl shadow-[4px_4px_0_0_#000]">
+                            ✏️
                         </div>
                         <Link
                             href={`/folder/${folderId}/expenses/new`}
-                            className="anime-button w-full bg-slate-900 text-white py-4 hover:bg-slate-800 shadow-lg shadow-slate-900/20 dark:bg-white dark:text-slate-900"
+                            className="manga-button-primary w-full py-3 text-center hover:scale-105 transform transition-transform text-sm"
                         >
-                            Add Detail +
+                            NEW ENTRY
                         </Link>
-                        <p className="text-xs font-medium text-slate-400">
-                            Log a new transaction
+                        <p className="font-mono text-[10px] uppercase">
+                            - Record a new chapter -
                         </p>
                     </div>
                 </div>
 
                 {/* Expenses Feed */}
-                <div className="space-y-6">
-                    <h3 className="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                        <span className="h-2 w-2 rounded-full bg-red-500"></span>
-                        Transaction History
+                <div className="space-y-8">
+                    <h3 className="text-3xl font-black uppercase italic border-l-8 border-black pl-4">
+                        Recent Arcs
                     </h3>
 
-                    <div className="space-y-3">
+                    <div className="space-y-4">
                         {expenses?.map((expense) => (
-                            <div key={expense.id} className="anime-card p-4 flex items-center justify-between hover:bg-slate-50 border-2 border-transparent hover:border-red-100 dark:hover:bg-slate-700 dark:hover:border-slate-600 transition-all">
-                                <div className="flex items-center gap-4">
-                                    <div className="h-12 w-12 rounded-2xl bg-slate-100 flex items-center justify-center text-xl dark:bg-slate-900">
-                                        {categories[expense.category] || '📦'}
-                                    </div>
-                                    <div>
-                                        <p className="font-bold text-lg text-slate-800 dark:text-white">{expense.description}</p>
-                                        <div className="flex items-center gap-2 text-xs font-medium text-slate-500 dark:text-slate-400">
-                                            <span className="text-red-500">
-                                                {formatDate(String(expense.date))}
-                                            </span>
-                                            <span>•</span>
-                                            <span>
-                                                {Array.isArray(expense.paid_by) ? expense.paid_by[0]?.email?.split('@')[0] : (expense.paid_by as any)?.email?.split('@')[0]}
-                                            </span>
+                            <Link
+                                href={`/folder/${folderId}/expenses/${expense.id}/edit`}
+                                key={expense.id}
+                                className="manga-panel p-0 flex items-stretch hover:translate-x-1 transition-transform group cursor-pointer"
+                            >
+                                {/* Date Box */}
+                                <div className="bg-black text-white w-20 md:w-24 flex flex-col items-center justify-center p-2 text-center border-r-2 border-black flex-shrink-0 group-hover:bg-yellow-400 group-hover:text-black transition-colors">
+                                    <span className="text-[10px] uppercase font-bold tracking-widest leading-none mb-1">
+                                        {new Date(expense.date).toLocaleString('en-US', { month: 'short' })}
+                                    </span>
+                                    <span className="text-2xl font-black leading-none">
+                                        {new Date(expense.date).getDate()}
+                                    </span>
+                                    <span className="text-[10px] font-bold font-mono mt-1 text-slate-400 group-hover:text-black">
+                                        {new Date(expense.date).getFullYear()}
+                                    </span>
+                                </div>
+
+                                {/* Content */}
+                                <div className="flex-1 p-4 flex items-center justify-between gap-4 overflow-hidden">
+                                    <div className="flex items-center gap-4 min-w-0">
+                                        <div className="h-10 w-10 border-2 border-black flex items-center justify-center text-lg bg-white flex-shrink-0">
+                                            {categories[expense.category] || '📦'}
+                                        </div>
+                                        <div className="min-w-0">
+                                            <p className="font-bold text-base md:text-lg uppercase tracking-tight truncate group-hover:underline decoration-2 underline-offset-2">
+                                                {expense.description}
+                                            </p>
+                                            <div className="text-xs font-mono bg-gray-100 border border-black px-1 inline-block mt-1 truncate max-w-full">
+                                                Paid by: {getMemberName(expense.paid_by_member_id)}
+                                            </div>
                                         </div>
                                     </div>
+
+                                    {/* Amount */}
+                                    <div className="text-right flex-shrink-0">
+                                        <p className="font-black text-xl md:text-2xl">
+                                            {formatCurrency(expense.amount, folder.currency)}
+                                        </p>
+                                        <span className="text-[10px] font-bold bg-black text-white px-1 opacity-0 group-hover:opacity-100 transition-opacity uppercase">Edit</span>
+                                    </div>
                                 </div>
-                                <div className="text-right">
-                                    <p className="font-bold text-xl text-slate-800 dark:text-white">
-                                        {formatCurrency(expense.amount, folder.currency)}
-                                    </p>
-                                </div>
-                            </div>
+                            </Link>
                         ))}
 
                         {(!expenses || expenses.length === 0) && (
-                            <div className="p-12 text-center">
-                                <div className="text-4xl mb-4">🍃</div>
-                                <p className="text-slate-500 font-medium">No transactions found here...</p>
+                            <div className="manga-panel p-12 text-center border-dashed">
+                                <p className="font-mono text-lg uppercase">... Silence ...</p>
+                                <p className="text-sm mt-2">No events recorded in this timeline.</p>
                             </div>
                         )}
                     </div>
